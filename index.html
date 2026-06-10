@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loop Scalability Visualizer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        h3 {
+            margin-top: 0;
+            color: #1e293b;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .data-source {
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .data-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #0369a1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .array-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            min-height: 40px;
+        }
+        .array-item {
+            background: #3b82f6;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: popIn 0.4s forwards;
+        }
+        @keyframes popIn {
+            to { opacity: 1; transform: scale(1); }
+        }
+        .scenarios {
+            display: flex;
+            gap: 20px;
+        }
+        .scenario-box {
+            flex: 1;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .scenario-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #334155;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        .code-block {
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            min-height: 90px;
+            white-space: pre-wrap; /* Ensures formatting, line breaks, and indentation are preserved */
+        }
+        .output-box {
+            background: white;
+            border: 1px dashed #94a3b8;
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #475569;
+            min-height: 100px;
+            white-space: pre-line;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 1rem;
+        }
+        .btn-run { background-color: #10b981; color: white; }
+        .btn-run:hover { background-color: #059669; }
+        .btn-add { background-color: #f59e0b; color: white; }
+        .btn-add:hover { background-color: #d97706; }
+        .btn-reset { background-color: #e2e8f0; color: #475569; }
+        .btn-reset:hover { background-color: #cbd5e1; }
+        .explanation {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 4px;
+            color: #92400e;
+            font-size: 0.95rem;
+            text-align: center;
+            line-height: 1.5;
+            min-height: 45px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>The Scalability Problem: Manual vs. Loop</h3>
+    
+    <div class="data-source">
+        <div class="data-title">cities list</div>
+        <div class="array-container" id="arrayContainer">
+            </div>
+    </div>
+
+    <div class="scenarios">
+        <div class="scenario-box">
+            <div class="scenario-title">Manual Execution</div>
+            <div class="code-block">print(cities[0])
+print(cities[1])
+print(cities[2])
+print(cities[3])</div>
+            <div class="output-box" id="manualOutput">Outputs will appear here...</div>
+        </div>
+
+        <div class="scenario-box">
+            <div class="scenario-title">Loop Execution</div>
+            <div class="code-block">for city in cities:
+    print(city)</div>
+            <div class="output-box" id="loopOutput">Outputs will appear here...</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-run" onclick="runCode()">Run Code</button>
+        <button class="btn-add" id="addBtn" onclick="addCity()">Add City to List</button>
+        <button class="btn-reset" onclick="resetState()">Reset</button>
+    </div>
+    
+    <div class="explanation" id="explanationBox">
+        Click <b>Run Code</b> to see how both approaches handle the initial data.
+    </div>
+</div>
+
+<script>
+    let defaultCities = ["Lagos", "Nairobi", "Dhaka", "São Paulo"];
+    let extraCities = ["Kinshasa", "Mumbai", "Cairo", "Jakarta", "Manila", "Karachi", "Mexico City", "Istanbul", "Addis Ababa", "Bangkok", "Ho Chi Minh City",
+    "Bogotá", "Lima"];
+    let currentCities = [];
+    let addedCount = 0;
+
+    function renderArray() {
+        const container = document.getElementById('arrayContainer');
+        container.innerHTML = '';
+        currentCities.forEach(city => {
+            const el = document.createElement('div');
+            el.className = 'array-item';
+            el.textContent = `"${city}"`;
+            container.appendChild(el);
+        });
+    }
+
+    function init() {
+        currentCities = [...defaultCities];
+        addedCount = 0;
+        document.getElementById('addBtn').disabled = false;
+        document.getElementById('addBtn').style.opacity = '1';
+        renderArray();
+        document.getElementById('manualOutput').textContent = "Outputs will appear here...";
+        document.getElementById('loopOutput').textContent = "Outputs will appear here...";
+        document.getElementById('explanationBox').innerHTML = "Click <b>Run Code</b> to see how both approaches handle the initial data.";
+    }
+
+    function runCode() {
+        // Manual strictly prints indices 0, 1, 2, 3
+        let manualOut = "";
+        for(let i=0; i<4; i++) {
+            manualOut += currentCities[i] ? currentCities[i] + "\n" : "IndexError\n";
+        }
+        document.getElementById('manualOutput').textContent = manualOut;
+
+        // Loop prints all dynamic items
+        let loopOut = currentCities.join("\n");
+        document.getElementById('loopOutput').textContent = loopOut;
+
+        if (currentCities.length === 4) {
+            document.getElementById('explanationBox').innerHTML = "Both approaches output the 4 cities perfectly. Now, try clicking <b>Add City to List</b> to simulate new data arriving, then <b>Run Code</b> again.";
+        } else {
+            document.getElementById('explanationBox').innerHTML = "<b>The Scaling Problem revealed!</b><br>The manual code remains rigidly stuck printing 4 items. The loop dynamically adapted to the new data size without needing a single change to the code.";
+        }
+    }
+
+    function addCity() {
+        if (addedCount < extraCities.length) {
+            currentCities.push(extraCities[addedCount]);
+            addedCount++;
+            renderArray();
+            document.getElementById('manualOutput').textContent = "Data changed. Run code again.";
+            document.getElementById('loopOutput').textContent = "Data changed. Run code again.";
+            document.getElementById('explanationBox').innerHTML = "Data updated! Click <b>Run Code</b> to observe what happens.";
+        }
+        if (addedCount >= extraCities.length) {
+            document.getElementById('addBtn').disabled = true;
+            document.getElementById('addBtn').style.opacity = '0.5';
+        }
+    }
+
+    function resetState() {
+        init();
+    }
+
+    // Start
+    init();
+</script>
+
+</body>
+</html>
